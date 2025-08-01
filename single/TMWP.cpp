@@ -147,6 +147,7 @@ requestBuffer[bytesExtracted]='\0';
 REQUEST *request=parseRequest(requestBuffer);
 if(request->isClientSideTechnologyResource)
 {
+//changes made in video-100
 if(request->resource==NULL)
 {
 f=fopen("index.html","rb");
@@ -155,6 +156,7 @@ if(f==NULL)
 {
 f=fopen("index.htm","rb");
 if(f!=NULL) printf("Sending index.html\n");
+// this is the change of video-100
 }
 if(f==NULL)
 {
@@ -196,6 +198,7 @@ f=fopen(request->resource,"rb");
 if(f!=NULL) printf("Sending %s\n",request->resource);
 if(f==NULL)
 {
+// changes made in video-100
 printf("Sending 404 page\n");
 char tmp[501];
 sprintf(tmp,"<DOCTYPE html><html lang='en'><head><meta charset='utf-8'><title>TM Web Projector</title></head><body><h2 style='color:red'>Resource /%s not found</h2></body></html>",request->resource);
