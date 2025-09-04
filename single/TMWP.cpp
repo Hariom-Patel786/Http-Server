@@ -47,6 +47,26 @@ if(extensionEquals(resource+lastIndexOfDot+1,"js"))
 mimeType=(char *)malloc(sizeof(char)*16);
 strcpy(mimeType,"text/javascript");
 }
+if(extensionEquals(resource+lastIndexOfDot+1,"jpeg"))
+{
+mimeType=(char *)malloc(sizeof(char)*11);
+strcpy(mimeType,"image/jpeg");
+}
+if(extensionEquals(resource+lastIndexOfDot+1,"jpg"))
+{
+mimeType=(char *)malloc(sizeof(char)*11);
+strcpy(mimeType,"image/jpeg");
+}
+if(extensionEquals(resource+lastIndexOfDot+1,"png"))
+{
+mimeType=(char *)malloc(sizeof(char)*10);
+strcpy(mimeType,"image/png");
+}
+if(extensionEquals(resource+lastIndexOfDot+1,"ico"))
+{
+mimeType=(char *)malloc(sizeof(char)*13);
+strcpy(mimeType,"image/x-icon");
+}
 return mimeType;
 }
 char isClientSideResource(char *resource)
@@ -88,9 +108,9 @@ int main()
 FILE *f;
 int length;
 int g;
-int i;
-char responseBuffer[1025]; // A Chunk of 1024 + 1 space for String terminator 
-char requestBuffer[8193];  
+int i,rc;
+char responseBuffer[1024]; // A Chunk of 1024 + 1 space for String terminator 
+char requestBuffer[8192];  
 int bytesExtracted;
 int serverSocketDescriptor;
 int clientSocketDescriptor;
@@ -155,7 +175,7 @@ if(f!=NULL) printf("Sending index.html\n");
 if(f==NULL)
 {
 f=fopen("index.htm","rb");
-if(f!=NULL) printf("Sending index.html\n");
+if(f!=NULL) printf("Sending index.htm\n");
 // this is the change of video-100
 }
 if(f==NULL)
@@ -172,24 +192,16 @@ fseek(f,0,0); // move the internal pointer to the start of file
 sprintf(responseBuffer,"HTTP/1.1 200 OK\nContent-Type:text/html\nContent-Length:%d\nKeep-Alive: timeout=5, max=1000\n\n",length);
 send(clientSocketDescriptor,responseBuffer,strlen(responseBuffer),0);
 i=0;
-while(1)
+while(i<length)
 {
-g=getc(f);
-if(feof(f))
-{
-responseBuffer[i]='\0';
-send(clientSocketDescriptor,responseBuffer,strlen(responseBuffer),0);
-break;
-}
-responseBuffer[i++]=g;
-if(i==1024)
-{
-responseBuffer[i]='\0';
-send(clientSocketDescriptor,responseBuffer,strlen(responseBuffer),0);
-i=0;
-}
+rc=length-i;
+if(rc>1024) rc=1024;
+fread(&responseBuffer,1024,1,f);
+send(clientSocketDescriptor,responseBuffer,rc,0);
+i+=rc;
 }
 fclose(f);
+closesocket(clientSocketDescriptor);
 }
 }
 else
@@ -199,6 +211,7 @@ if(f!=NULL) printf("Sending %s\n",request->resource);
 if(f==NULL)
 {
 // changes made in video-100
+// something  needs to be done over here
 printf("Sending 404 page\n");
 char tmp[501];
 sprintf(tmp,"<DOCTYPE html><html lang='en'><head><meta charset='utf-8'><title>TM Web Projector</title></head><body><h2 style='color:red'>Resource /%s not found</h2></body></html>",request->resource);
@@ -211,27 +224,19 @@ else
 fseek(f,0,2); // move the internal pointer to the end of file
 length=ftell(f);
 fseek(f,0,0); // move the internal pointer to the start of file
-sprintf(responseBuffer,"HTTP/1.1 200 OK\nContent-Type:text/html\nContent-Length:%d\nKeep-Alive: timeout=5, max=1000\n\n",length);
+sprintf(responseBuffer,"HTTP/1.1 200 OK\nContent-Type:%s\nContent-Length:%d\nKeep-Alive: timeout=5, max=1000\n\n",request->mimeType,length);
 send(clientSocketDescriptor,responseBuffer,strlen(responseBuffer),0);
 i=0;
-while(1)
+while(i<length)
 {
-g=getc(f);
-if(feof(f))
-{
-responseBuffer[i]='\0';
-send(clientSocketDescriptor,responseBuffer,strlen(responseBuffer),0);
-break;
-}
-responseBuffer[i++]=g;
-if(i==1024)
-{
-responseBuffer[i]='\0';
-send(clientSocketDescriptor,responseBuffer,strlen(responseBuffer),0);
-i=0;
-}
+rc=length-i;
+if(rc>1024) rc=1024;
+fread(&responseBuffer,1024,1,f);
+send(clientSocketDescriptor,responseBuffer,rc,0);
+i+=rc;
 }
 fclose(f);
+closesocket(clientSocketDescriptor);
 }
 }
 }
@@ -249,7 +254,6 @@ else
 {
 printf("Unable to send response\n");
 }*/
-closesocket(clientSocketDescriptor);
 closesocket(serverSocketDescriptor);
 WSACleanup();
 return 0;
