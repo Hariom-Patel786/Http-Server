@@ -1,6 +1,8 @@
+#include<tmwp>
 #include<stdio.h>
 #include<string.h>
 #include<windows.h>
+using namespace tm;
 typedef struct _request
 {
 char *method;
@@ -103,7 +105,12 @@ request->mimeType=getMIMEType(resource);
 }
 return request;
 }
-int main()
+TMWebProjector::TMWebProjector(int portNumber)
+{
+this->portNumber=portNumber;
+}
+// I replaced all return 0; with return; in the following method
+void TMWebProjector::start()
 {
 FILE *f;
 int length;
@@ -126,10 +133,10 @@ serverSocketDescriptor=socket(AF_INET,SOCK_STREAM,0);
 if(serverSocketDescriptor<0)
 {
 printf("Unable to create socket\n");
-return 0;
+return;
 }
 serverSocketInformation.sin_family=AF_INET;
-serverSocketInformation.sin_port=htons(5050);
+serverSocketInformation.sin_port=htons(this->portNumber);
 serverSocketInformation.sin_addr.s_addr=htonl(INADDR_ANY);
 
 successCode=bind(serverSocketDescriptor,(struct sockaddr *)&serverSocketInformation,sizeof(serverSocketInformation));
@@ -137,7 +144,7 @@ if(successCode<0)
 {
 printf("Unable to bind socket to port 5050\n");
 WSACleanup();
-return 0;
+return;
 }
 listen(serverSocketDescriptor,10);
 
@@ -152,7 +159,7 @@ if(clientSocketDescriptor<0)
 printf("Unable to accept client connection");
 closesocket(serverSocketDescriptor);
 WSACleanup();
-return 0;
+return;
 }
 bytesExtracted=recv(clientSocketDescriptor,requestBuffer,8192,0);
 if(bytesExtracted<0)
@@ -256,5 +263,5 @@ printf("Unable to send response\n");
 }*/
 closesocket(serverSocketDescriptor);
 WSACleanup();
-return 0;
+return;
 }

@@ -1,0 +1,11 @@
+namespace tm
+{
+class TMWebProjector
+{
+private:
+int portNumber;
+public:
+TMWebProjector(int portNumber);
+void start();
+};
+}
